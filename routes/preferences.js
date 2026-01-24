@@ -16,7 +16,7 @@ router.post('/preferences', async (req, res) => {
 
   // Vérifie que userId et selectedVehicleId sont fournis
   if (!userId) {
-    //console.log("ERR preferences: userID absent");
+    console.log("ERR preferences: userID absent");
     return res.status(400).json({ error: "L'ID de l'utilisateur est requis." });
   }
 
