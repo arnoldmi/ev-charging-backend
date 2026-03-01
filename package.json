@@ -1,13 +1,13 @@
 {
   "name": "ev-charging-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "api de l'application ev charging dashboard",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "ArnoldMI",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
