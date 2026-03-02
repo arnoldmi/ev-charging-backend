@@ -76,7 +76,7 @@ router.get('/stats/global', async (req, res) => {
       cost_data AS (
         SELECT
           cost / NULLIF(kwh, 0) AS cost_per_kwh,
-          cost / NULLIF(((mileage - prev_mileage) / 100), 0) AS cost_per_km
+          cost / NULLIF((mileage - prev_mileage), 0) AS cost_per_km
         FROM charge_distances
         WHERE prev_mileage IS NOT NULL AND (mileage - prev_mileage) > 0 AND kwh > 0
       )
