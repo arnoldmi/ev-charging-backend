@@ -109,13 +109,36 @@ router.get('/charges/latest/:vehicleId', async (req, res) => {
 // ========================================
 router.post('/charges', async (req, res) => {
   const { userId, vehicleId, date, kwh, cost, mileage, location } = req.body;
+
+
+
+  /*
+  * Validation des données
+  * vérifie si les paramètres sont des chaines vides ou seulements des espaces
+  */
+  [userId, vehicleId, date, location].forEach(str => {
+    if (str && /\S/.test(str)) {
+      console.log("%o is truthy and has non-whitespace characters or equal zero", str);
+    } else {
+      console.log("%o is bad", str);
+      return res.status(400).json({ 
+        error: 'L un des champs suivant est absent ( date, location)' 
+      });
+    }
+  });
+
+  /*
+  * vérifie si les paramètres sont des chiffres vides ou seulements des espaces
+  */
+  [userId, vehicleId, kwh, cost, mileage].forEach(str => {
+    if (isNaN(str)) {
+      console.log("%o is bad", str);
+      return res.status(400).json({ 
+        error: 'L un des champs suivant est absent (userId, vehicleId, kwh, cost, mileage)' 
+      });
+    }
+  });
   
-  // Validation des données
-  if (!userId || !vehicleId || !date || !kwh || !cost || !mileage || !location) {
-    return res.status(400).json({ 
-      error: 'Tous les champs sont requis (userId, vehicleId, date, kwh, cost, mileage, location)' 
-    });
-  }
   
   try {
     const result = await pool.query(
