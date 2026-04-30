@@ -17,8 +17,8 @@ router.get('/stats', async (req, res) => {
     const result = await pool.query(
       `
       SELECT
-        AVG(kwh) as avg_consumption,
-        AVG(cost) / SUM(kwh) as avg_cost_per_km,
+        (SUM(kwh)*100)/(max(mileage)-min(mileage)) as avg_consumption,
+        SUM(cost)/(max(mileage)-min(mileage)) as avg_cost_per_km,
         COUNT(*) as total_charges
       FROM charges
       WHERE user_id = $1 AND vehicle_id = $2
@@ -38,8 +38,8 @@ router.get('/stats/consumption', async (req, res) => {
     const result = await pool.query(
       `
       SELECT
-        AVG(kwh * 100 / (LEAD(mileage) OVER (ORDER BY date) - mileage)) as avg_consumption_per_100km,
-        AVG(cost / kwh) as avg_cost_per_kwh
+        (SUM(kwh)*100)/(max(mileage)-min(mileage)) as avg_consumption_per_100km,
+        SUM(cost)/SUM(kwh) as avg_cost_per_kwh
       FROM charges
       WHERE vehicle_id = $1 AND mileage IS NOT NULL
       `,
@@ -57,35 +57,13 @@ router.get('/stats/global', async (req, res) => {
   try {
     const result = await pool.query(
       `
-      WITH charge_distances AS (
-        SELECT
-          date,
-          kwh,
-          cost,
-          mileage,
-          LAG(mileage) OVER (ORDER BY date) AS prev_mileage
-        FROM charges
-        WHERE user_id = $1 AND vehicle_id = $2
-      ),
-      consumption_data AS (
-        SELECT
-          (kwh * 100) / NULLIF((mileage - prev_mileage), 0) AS consumption
-        FROM charge_distances
-        WHERE prev_mileage IS NOT NULL AND (mileage - prev_mileage) > 0
-      ),
-      cost_data AS (
-        SELECT
-          cost / NULLIF(kwh, 0) AS cost_per_kwh,
-          cost / NULLIF((mileage - prev_mileage), 0) AS cost_per_km
-        FROM charge_distances
-        WHERE prev_mileage IS NOT NULL AND (mileage - prev_mileage) > 0 AND kwh > 0
-      )
       SELECT
-        AVG(consumption) AS avg_consumption,
-        AVG(cost_per_kwh) AS avg_cost_per_kwh,
-        AVG(cost_per_km) AS avg_cost_per_km,
-        (SELECT COUNT(*) FROM charges WHERE user_id = $1 AND vehicle_id = $2) AS total_charges
-      FROM consumption_data, cost_data
+        (SUM(kwh)*100)/(max(mileage)-min(mileage)) as avg_consumption,
+        SUM(cost)/SUM(kwh) AS avg_cost_per_kwh,
+        SUM(cost)/(max(mileage)-min(mileage)) as avg_cost_per_km,
+        COUNT(*) as total_charges
+      FROM charges
+      WHERE user_id = $1 AND vehicle_id = $2
       `,
       [userId, vehicleId]
     );
